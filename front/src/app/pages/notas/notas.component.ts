@@ -1,33 +1,18 @@
-import {Component, NgModule} from '@angular/core';
+import {Component, NgModule, ViewChild} from '@angular/core';
 import {Nota} from "../../shared/models/nota";
 import {NotaService} from "../../shared/services/notas/nota.service";
-import {ListModule} from "../../shared/components/list/list.component";
-import {PopupModule} from "../../shared/components/popup/popup.component";
 import {
   DxButtonModule,
+  DxDataGridComponent,
   DxDataGridModule,
-  DxFormModule,
   DxPopupModule,
-  DxScrollViewModule,
-  DxSelectBoxModule
+  DxSpeedDialActionModule
 } from "devextreme-angular";
-import {
-  DxiColumnModule,
-  DxoEditingModule,
-  DxoFormModule,
-  DxoHeaderFilterModule,
-  DxoPagerModule,
-  DxoPagingModule,
-  DxoPopupModule,
-  DxoScrollingModule,
-  DxoSearchPanelModule
-} from "devextreme-angular/ui/nested";
 import {DxTextBoxTypes} from "devextreme-angular/ui/text-box";
-import {FornecedorService} from "../../shared/services/fornecedores/fornecedor.service";
-import {Fornecedor} from "../../shared/models/fornecedor";
 import {ItensNotaService} from "../../shared/services/itensNota/itens-nota.service";
 import {ItensNota} from "../../shared/models/itensNota";
-import {ItensNotaModule} from "../itens-nota/itens-nota.component";
+import DevExpress from "devextreme";
+import data = DevExpress.data;
 
 type EditorOptions = DxTextBoxTypes.Properties;
 
@@ -38,99 +23,84 @@ type EditorOptions = DxTextBoxTypes.Properties;
 })
 export class NotasComponent {
 
-  popupDeleteVisivel: boolean = false;
-  value: any;
+  @ViewChild("dataGrip", {static: false}) dataGrid!: DxDataGridComponent;
 
   notas: Nota[] = [];
-  novaNota: Nota = new Nota();
   notaCriada: Nota = new Nota();
-  fornecedores: Fornecedor[] = [];
   itensNota: ItensNota[] = [];
-
+  value: Nota = new Nota();
+  popupDeleteVisivel: boolean = false;
   apenasDigitosPattern = /^[\d.,]+$/;
 
-  numeroValido: boolean = false;
-  botaoDesativado: boolean = true;
-
   constructor(
-    private serviceNota: NotaService,
-    private serviceFornecedor: FornecedorService,
+    private serviceNotas: NotaService,
     private serviceItensNota: ItensNotaService
   ) {}
 
   ngOnInit() {
     this.carregarNotas();
-    this.carregarFornecedores();
-    this.carretarItens();
+    this.carregarItensNota();
   }
 
   carregarNotas() {
-    this.serviceNota.getNotas().subscribe(dadosNotas => {
+    this.serviceNotas.getNotas().subscribe(dadosNotas => {
       this.notas = dadosNotas;
-    });
-  }
-
-  carregarFornecedores() {
-    this.serviceFornecedor.getFornecedores().subscribe(fornecedoresDados => {
-      this.fornecedores = fornecedoresDados;
     })
   }
 
-  carretarItens() {
-    this.serviceItensNota.getItensNota().subscribe(itensDados => {
-      this.itensNota = itensDados;
+  carregarItensNota() {
+    this.serviceItensNota.getItensNota().subscribe(dadosItensNotas => {
+      this.itensNota = dadosItensNotas;
     })
   }
 
-  criarNota(nota: Nota) {
-    this.notaCriada = {
-      id: nota.id,
-      numero: nota.numero,
-      data: nota.data,
-      fornecedor: nota.fornecedor,
-      nomeFornecedor: nota.fornecedor.nome,
-    };
-    this.serviceNota.postNota(this.notaCriada).subscribe(() => {
-      console.log("Nota criada com sucesso!");
+  deletarNota(nota: Nota) {
+    this.serviceNotas.deleteNota(nota.id).subscribe(() => {
+      console.log("Nota deletada com sucesso!")
+    })
+  }
+
+  deletarItemNota(e: any) {
+    e.cancel = true;
+    this.serviceItensNota.deleteItemNota(e.data.id).subscribe(() => {
+      console.log("Item da Nota deletada com sucesso!")
       this.carregarNotas();
-    });
+    })
   }
 
-  deletarNota() {
-    this.serviceNota.deleteNota(this.value.id).subscribe(() => {
-      console.log("Nota deletada com sucesso!");
-      this.carregarNotas();
-      this.popupDeleteVisivel = false;
-    });
+  onSavedNota(e: any) {
+    for (let change of e.changes) {
+      if (change.type == 'insert') {
+        this.serviceNotas.postNota(change.data).subscribe(() => {
+          console.log("Nota criado com sucesso!");
+          this.carregarNotas();
+        })
+      } else if (change.type == 'update') {
+        this.serviceNotas.updateNota(change.data.id, change.data).subscribe(() => {
+          console.log("Nota atualizado com sucesso!")
+        });
+      }
+    }
   }
 
-  atualizarNota(evento: any) {
-    console.log(this.notaCriada)
-    this.notaCriada = {
-      id: evento.id,
-      numero: evento.numero,
-      data: evento.data,
-      fornecedor: evento.fornecedor,
-      nomeFornecedor: evento.fornecedor.nome,
-    };
-    console.log(this.notaCriada)
-    this.serviceNota.updateNota(this.notaCriada.id, this.notaCriada).subscribe(() => {
-      console.log("Nota atualizada com sucesso!");
-    });
+  onSavedItemNota(e: any) {
+    for (let change of e.changes) {
+      if (change.type == 'insert') {
+        this.serviceItensNota.postItemNota(change.data).subscribe(() => {
+          console.log("Item da nota criado com sucesso!");
+          this.carregarNotas();
+        })
+      } else if (change.type == 'update') {
+        this.serviceItensNota.updateItemNota(change.data.id, change.data).subscribe(() => {
+          console.log("Item da nota atualizado com sucesso!")
+          this.carregarNotas();
+        });
+      }
+    }
   }
 
-  deletarItemNota(evento: any) {
-    this.serviceItensNota.deleteItemNota(evento.id).subscribe(() => {
-      console.log("Item da nota deletado com sucesso!");
-      this.carretarItens();
-    });
-  }
-
-  atualizarItemNota(evento: any) {
-    console.log(evento)
-    this.serviceItensNota.updateItemNota(evento.id, evento).subscribe(() => {
-      console.log("Item da nota atualizado com sucesso!");
-    });
+  addRow() {
+    this.dataGrid.instance.addRow();
   }
 
   popupConfirmacaoDelete(evento: any) {
@@ -139,32 +109,19 @@ export class NotasComponent {
     this.popupDeleteVisivel = true;
   }
 
+  onPressDeletar() {
+    this.deletarNota(this.value);
+    this.popupDeleteVisivel = false;
+  }
+
   cancelarDelete() {
     this.popupDeleteVisivel = false
   }
 
-  editorPreparing(e: any) {
-    if (e.dataField === 'id') {
-      e.editorOptions.disabled = true;
-    } else if (e.dataField === 'data') {
-      e.editorOptions.disabled = true;
-    }
-  }
-
-  customSaveFunction(e: any) {
-    if (e.newData !== undefined) {
-      e = { ...e.oldData, ...e.newData}
-      this.atualizarNota(e);
-    }
-  }
-
-  numeroEditorOptions: EditorOptions = {
-    valueChangeEvent: 'keyup',
-    onValueChanged: (e: any) => {
-      this.numeroValido = e.value.length >= 1 && this.apenasDigitosPattern.test(e.value);
-      this.botaoDesativado = !(this.numeroValido);
-    }
+  editorOptions: EditorOptions = {
+    valueChangeEvent: 'keyup'
   };
+
 }
 
 @NgModule({
@@ -172,24 +129,10 @@ export class NotasComponent {
     NotasComponent
   ],
   imports: [
-    ListModule,
-    PopupModule,
+    DxDataGridModule,
+    DxSpeedDialActionModule,
     DxButtonModule,
     DxPopupModule,
-    DxDataGridModule,
-    DxiColumnModule,
-    DxoEditingModule,
-    DxoFormModule,
-    DxoHeaderFilterModule,
-    DxoPagerModule,
-    DxoPagingModule,
-    DxoPopupModule,
-    DxoScrollingModule,
-    DxoSearchPanelModule,
-    DxFormModule,
-    DxScrollViewModule,
-    DxSelectBoxModule,
-    ItensNotaModule,
   ]
 })
 export class NotasModule { }

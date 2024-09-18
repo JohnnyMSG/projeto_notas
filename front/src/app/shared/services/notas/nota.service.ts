@@ -24,10 +24,10 @@ export class NotaService {
   }
 
   updateNota(notaId: number, nota: Nota) {
-    return this.http.put<Fornecedor>(`${this.API}/${notaId}`, nota);
+    return this.http.put<Nota>(`${this.API}/${notaId}`, nota);
   }
 
   deleteNota(notaId: number) {
-    return this.http.delete<Fornecedor>(`${this.API}/${notaId}`);
+    return this.http.delete<Nota>(`${this.API}/${notaId}`);
   }
 }

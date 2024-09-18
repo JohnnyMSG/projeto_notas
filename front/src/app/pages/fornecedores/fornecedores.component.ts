@@ -1,22 +1,16 @@
-import {Component, NgModule} from '@angular/core';
-import {StateCityModule} from "../../shared/components";
-import {ListModule} from "../../shared/components/list/list.component";
+import {Component, NgModule, ViewChild} from '@angular/core';
 import {Fornecedor} from "../../shared/models/fornecedor";
 import {FornecedorService} from "../../shared/services/fornecedores/fornecedor.service";
 import {
   DxButtonModule,
-  DxFormModule,
+  DxDataGridComponent,
+  DxDataGridModule,
   DxPopupModule,
-  DxScrollViewModule,
-  DxSpeedDialActionModule,
-  DxTreeListModule
+  DxSpeedDialActionModule
 } from "devextreme-angular";
-import {DxiToolbarItemModule} from "devextreme-angular/ui/nested";
-import {PopupModule} from "../../shared/components/popup/popup.component";
-import {AddFormModule} from "../../shared/components/add-form/add-form.component";
-import {DxTextBoxTypes} from "devextreme-angular/ui/text-box";
 import {NotaService} from "../../shared/services/notas/nota.service";
 import {Nota} from "../../shared/models/nota";
+import {DxTextBoxTypes} from "devextreme-angular/ui/text-box";
 
 type EditorOptions = DxTextBoxTypes.Properties;
 
@@ -27,21 +21,19 @@ type EditorOptions = DxTextBoxTypes.Properties;
 })
 export class FornecedoresComponent {
 
+  @ViewChild("dataGrip", {static: false}) dataGrid!: DxDataGridComponent;
+
   fornecedores: Fornecedor[] = [];
   notas: Nota[] = [];
-  novoFornecedor: Fornecedor = new Fornecedor();
-
+  value: Fornecedor = new Fornecedor();
+  popupDeleteVisivel: boolean = false;
+  notaComFornecedorExistente: boolean = false;
   apenasDigitosPattern = /^[\d.,]+$/;
   apenasStringPattern = /^[^0-9]+$/;
 
-  codigoFornecedorValido: boolean = false;
-  nomeValido: boolean = false;
-  botaoDesativado: boolean = true;
-  notaComFornecedorExistente: boolean = false;
-
   constructor(
-    public serviceFornecedor: FornecedorService,
-    public serviceNotas: NotaService
+    private serviceFornecedor: FornecedorService,
+    private serviceNotas: NotaService
   ) {
   }
 
@@ -53,7 +45,7 @@ export class FornecedoresComponent {
   carregarFornecedores() {
     this.serviceFornecedor.getFornecedores().subscribe(dadosFornecedores => {
       this.fornecedores = dadosFornecedores;
-    });
+    })
   }
 
   carregarNotas() {
@@ -62,55 +54,63 @@ export class FornecedoresComponent {
     });
   }
 
-  criarFornecedor(fornecedor: Fornecedor) {
-    this.serviceFornecedor.postFornecedor(fornecedor).subscribe(() => {
-      console.log("Fornecedor criado com sucesso!");
-      this.carregarFornecedores();
-    });
-  }
-
-  deletarFornecedor(evento: any) {
+  deletarFornecedor(fornecedor: Fornecedor) {
+    console.log(fornecedor)
     for (let nota of this.notas) {
-      if (evento.nome == nota.fornecedor.nome) {
+      if (fornecedor.nome == nota.fornecedor.nome) {
         this.notaComFornecedorExistente = true
         return;
       }
     }
-    this.serviceFornecedor.deleteFornecedores(evento.id).subscribe(() => {
+    this.serviceFornecedor.deleteFornecedores(fornecedor.id).subscribe(() => {
       console.log("Fornecedor deletado com sucesso!");
       this.carregarFornecedores();
     });
   }
 
-  atualizarFornecedor(evento: any) {
-    this.serviceFornecedor.updateFornecedores(evento.id, evento).subscribe(() => {
-      console.log("Fornecedor atualizado com sucesso!");
-    });
+  onSavedFornecedor(e: any) {
+    for (let change of e.changes) {
+      if (change.type == 'insert') {
+        this.serviceFornecedor.postFornecedor(change.data).subscribe(() => {
+          console.log("Fornecedor criado com sucesso!");
+          this.carregarFornecedores();
+        })
+      } else if (change.type == 'update') {
+        this.serviceFornecedor.updateFornecedores(change.data.id, change.data).subscribe(() => {
+          console.log("Fornecedor atualizado com sucesso!")
+        });
+      }
+    }
   }
 
-  codigoFornecedorEditorOptions: EditorOptions = {
-    valueChangeEvent: 'keyup',
-    onValueChanged: (e: any) => {
-      this.codigoFornecedorValido = e.value.length >= 1 && this.apenasDigitosPattern.test(e.value);
-      this.validadeBotao();
-    }
-  };
+  addRow() {
+    this.dataGrid.instance.addRow();
+  }
 
-  nomeEditorOptions: EditorOptions = {
-    valueChangeEvent: 'keyup',
-    onValueChanged: (e: any) => {
-      this.nomeValido = e.value.length >= 5 && this.apenasStringPattern.test(e.value);
-      this.validadeBotao();
-    }
-  };
+  popupConfirmacaoDelete(evento: any) {
+    evento.cancel = true;
+    this.value = evento.data
+    this.popupDeleteVisivel = true;
+  }
 
-  validadeBotao() {
-    this.botaoDesativado = !(this.nomeValido && this.codigoFornecedorValido);
+  onPressDeletar() {
+    this.deletarFornecedor(this.value);
+    this.popupDeleteVisivel = false;
+  }
+
+  cancelarDelete() {
+    this.popupDeleteVisivel = false
   }
 
   fecharAviso() {
     this.notaComFornecedorExistente = false;
   }
+
+  editorOptions: EditorOptions = {
+    valueChangeEvent: 'keyup'
+  };
+
+
 }
 
 @NgModule({
@@ -118,17 +118,11 @@ export class FornecedoresComponent {
     FornecedoresComponent,
   ],
   imports: [
-    ListModule,
-    PopupModule,
-    AddFormModule,
-    StateCityModule,
-    DxPopupModule,
-    DxScrollViewModule,
+    DxDataGridModule,
     DxSpeedDialActionModule,
-    DxiToolbarItemModule,
-    DxFormModule,
-    DxTreeListModule,
     DxButtonModule,
+    DxPopupModule
   ]
 })
-export class FornecedoresModule { }
+export class FornecedoresModule {
+}

@@ -1,27 +1,18 @@
-import {Component, NgModule} from '@angular/core';
-import {DxButtonModule, DxFormModule, DxPopupModule, DxScrollViewModule, DxTreeListModule} from "devextreme-angular";
+import {Component, NgModule, ViewChild} from '@angular/core';
 import {
-  DxiColumnModule,
-  DxiItemModule,
-  DxiValidationRuleModule,
-  DxoEditingModule,
-  DxoFormModule,
-  DxoHeaderFilterModule,
-  DxoPagerModule,
-  DxoPagingModule,
-  DxoPopupModule,
-  DxoScrollingModule,
-  DxoSearchPanelModule
-} from "devextreme-angular/ui/nested";
-import {PopupModule} from "../../shared/components/popup/popup.component";
-import {ItensNotaService} from "../../shared/services/itensNota/itens-nota.service";
-import {ItensNota} from "../../shared/models/itensNota";
-import {NotaService} from "../../shared/services/notas/nota.service";
-import {ProdutoService} from "../../shared/services/produtos/produto.service";
-import {Nota} from "../../shared/models/nota";
-import {Produto} from "../../shared/models/produto";
-import {ListModule} from "../../shared/components/list/list.component";
+  DxButtonModule,
+  DxDataGridComponent,
+  DxDataGridModule,
+  DxPopupModule,
+  DxSpeedDialActionModule
+} from "devextreme-angular";
 import {DxTextBoxTypes} from "devextreme-angular/ui/text-box";
+import {ItensNota} from "../../shared/models/itensNota";
+import {ItensNotaService} from "../../shared/services/itensNota/itens-nota.service";
+import {Nota} from "../../shared/models/nota";
+import {NotaService} from "../../shared/services/notas/nota.service";
+import {Produto} from "../../shared/models/produto";
+import {ProdutoService} from "../../shared/services/produtos/produto.service";
 
 type EditorOptions = DxTextBoxTypes.Properties;
 
@@ -32,92 +23,91 @@ type EditorOptions = DxTextBoxTypes.Properties;
 })
 export class ItensNotaComponent {
 
-  itensNota: ItensNota[] = [];
-  itensNotaCriada: ItensNota = new ItensNota();
+  @ViewChild("dataGrip", {static: false}) dataGrid!: DxDataGridComponent;
+
+  itensNotas: ItensNota[] = [];
   notas: Nota[] = [];
   produtos: Produto[] = [];
-
+  value: ItensNota = new ItensNota();
+  popupDeleteVisivel: boolean = false;
   apenasDigitosPattern = /^[\d.,]+$/;
-
-  novoItemNota: ItensNota = new ItensNota();
-
-  quantidadeValida: boolean = false;
-  numeroNotaValido: boolean = false;
-  nomeProdutoValido: boolean = false;
-  botaoDesativado: boolean = true;
+  apenasStringPattern = /^[^0-9]+$/;
 
   constructor(
     private serviceItensNota: ItensNotaService,
-    private serviceNota: NotaService,
-    private serviceProduto: ProdutoService
+    private serviceNotas: NotaService,
+    private serviceProdutos: ProdutoService
   ) {}
 
   ngOnInit() {
     this.carregarItensNota();
+    this.carregarNotas();
+    this.carregarProdutos();
   }
 
   carregarItensNota() {
     this.serviceItensNota.getItensNota().subscribe(dadosItensNota => {
-      this.itensNota = dadosItensNota
-    });
-
-    this.serviceNota.getNotas().subscribe(dadosNotas => {
-      this.notas = dadosNotas
-    });
-
-    this.serviceProduto.getProdutos().subscribe(dadosProdutos => {
-      this.produtos = dadosProdutos
+      this.itensNotas = dadosItensNota;
     });
   }
 
-  criarItemNota(evento : any) {
-    this.itensNotaCriada = {
-      id: evento.id,
-      numeroNota: evento.numeroNota,
-      quantidade: evento.quantidade,
-      valor_total: evento.valor_total,
-      produtos: evento.produtos,
-      nomeProduto: evento.produtos.nome,
-    }
-    this.serviceItensNota.postItemNota(this.itensNotaCriada).subscribe(() => {
-      console.log("Item da nota criado com sucesso!");
-      this.carregarItensNota();
+  carregarNotas() {
+    this.serviceNotas.getNotas().subscribe(dadosNotas => {
+      this.notas = dadosNotas;
     })
   }
 
-  deletarItemNota(evento: any) {
-    this.serviceItensNota.deleteItemNota(evento.id).subscribe(() => {
-      console.log("Item da nota deletado com sucesso!");
+  carregarProdutos() {
+    this.serviceProdutos.getProdutos().subscribe(dadosProdutos => {
+      this.produtos = dadosProdutos
+    })
+  }
+
+  deleteItensNota(ItensNota: ItensNota) {
+    this.serviceItensNota.deleteItemNota(ItensNota.id).subscribe(() => {
+      console.log("ItensNota deletado com sucesso!");
       this.carregarItensNota();
     });
   }
 
-  atualizarItemNota(evento: any) {
-    console.log(evento)
-    this.serviceItensNota.updateItemNota(evento.id, evento).subscribe(() => {
-      console.log("Item da nota atualizado com sucesso!");
-    });
+  onSavedItensNota(e: any) {
+    for (let change of e.changes) {
+      if (change.type == 'insert') {
+        console.log(change)
+        this.serviceItensNota.postItemNota(change.data).subscribe(() => {
+          console.log("ItensNota criado com sucesso!");
+          this.carregarItensNota();
+        })
+      } else if (change.type == 'update') {
+        this.serviceItensNota.updateItemNota(change.data.id, change.data).subscribe(() => {
+          console.log("ItensNota atualizado com sucesso!")
+        });
+      }
+    }
   }
 
-  quantidadeEditorOptions: EditorOptions = {
-    valueChangeEvent: 'keyup',
-    onValueChanged: (e: any) => {
-      this.quantidadeValida = e.value.length >= 1 && this.apenasDigitosPattern.test(e.value);
-      this.validadeBotao();
-    }
-  };
-
-  numeroNotaEditorOptions: EditorOptions = {
-    valueChangeEvent: 'keyup',
-    onValueChanged: (e: any) => {
-      this.numeroNotaValido = e.value.length >= 1 && this.apenasDigitosPattern.test(e.value);
-      this.validadeBotao();
-    }
-  };
-
-  validadeBotao() {
-    this.botaoDesativado = !(this.quantidadeValida);
+  addRow() {
+    this.dataGrid.instance.addRow();
   }
+
+  popupConfirmacaoDelete(evento: any) {
+    evento.cancel = true;
+    this.value = evento.data
+    this.popupDeleteVisivel = true;
+  }
+
+  onPressDeletar() {
+    this.deleteItensNota(this.value);
+    this.popupDeleteVisivel = false;
+  }
+
+  cancelarDelete() {
+    this.popupDeleteVisivel = false
+  }
+
+  editorOptions: EditorOptions = {
+    valueChangeEvent: 'keyup'
+  };
 
 }
 
@@ -129,24 +119,10 @@ export class ItensNotaComponent {
     ItensNotaComponent
   ],
   imports: [
-    DxButtonModule,
-    DxFormModule,
+    DxDataGridModule,
+    DxSpeedDialActionModule,
     DxPopupModule,
-    DxScrollViewModule,
-    DxTreeListModule,
-    DxiColumnModule,
-    DxiItemModule,
-    DxiValidationRuleModule,
-    DxoEditingModule,
-    DxoFormModule,
-    DxoHeaderFilterModule,
-    DxoPagerModule,
-    DxoPagingModule,
-    DxoPopupModule,
-    DxoScrollingModule,
-    DxoSearchPanelModule,
-    PopupModule,
-    ListModule
+    DxButtonModule,
   ]
 })
 export class ItensNotaModule { }
