@@ -11,60 +11,60 @@ import br.com.sonner.notas.modelo.Nota;
 
 public class NotaDto {
 
-	private Long id;
-	private int numero;
-	private LocalDate data = LocalDate.now();
-	private Fornecedor fornecedor;
-	private List<ItemNotaDto> itens = new ArrayList<>();
+    private Long id;
+    private int numero;
+    private LocalDate data = LocalDate.now();
+    private String nomeFornecedor;
+    private List<ItemNotaDto> itens = new ArrayList<>();
 
-	public NotaDto(Nota nota) {
-		this.id = nota.getId();
-		this.numero = nota.getNumero();
-		this.fornecedor = nota.getFornecedor();
-		this.itens = ItemNotaDto.converter(nota.getItens());
-	}
+    public NotaDto(Nota nota) {
+        this.id = nota.getId();
+        this.numero = nota.getNumero();
+        this.nomeFornecedor = nota.getFornecedor().getNome();
+        this.itens = ItemNotaDto.converter(nota.getItens());
+    }
 
-	public Long getId() {
-		return id;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public int getNumero() {
-		return numero;
-	}
+    public int getNumero() {
+        return numero;
+    }
 
-	public void setNumero(int numero) {
-		this.numero = numero;
-	}
+    public void setNumero(int numero) {
+        this.numero = numero;
+    }
 
-	public LocalDate getData() {
-		return data;
-	}
+    public LocalDate getData() {
+        return data;
+    }
 
-	public void setData(LocalDate data) {
-		this.data = data;
-	}
+    public void setData(LocalDate data) {
+        this.data = data;
+    }
 
-	public Fornecedor getFornecedor() {
-		return fornecedor;
-	}
+    public String getNomeFornecedor() {
+        return nomeFornecedor;
+    }
 
-	public void setFornecedor(Fornecedor fornecedor) {
-		this.fornecedor = fornecedor;
-	}
+    public void setNomeFornecedor(String nomeFornecedor) {
+        this.nomeFornecedor = nomeFornecedor;
+    }
 
-	public List<ItemNotaDto> getItens() {
-		return itens;
-	}
+    public List<ItemNotaDto> getItens() {
+        return itens;
+    }
 
-	public void setItens(List<ItemNotaDto> itens) {
-		this.itens = itens;
-	}
+    public void setItens(List<ItemNotaDto> itens) {
+        this.itens = itens;
+    }
 
-	public static List<NotaDto> converter(List<Nota> notas) {
-		return notas.stream().map(NotaDto::new).collect(Collectors.toList());
-	}
+    public static List<NotaDto> converter(List<Nota> notas) {
+        return notas.stream().map(NotaDto::new).collect(Collectors.toList());
+    }
 }

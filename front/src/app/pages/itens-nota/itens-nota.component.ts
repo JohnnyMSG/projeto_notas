@@ -3,7 +3,7 @@ import {
   DxButtonModule,
   DxDataGridComponent,
   DxDataGridModule,
-  DxPopupModule,
+  DxPopupModule, DxSelectBoxModule,
   DxSpeedDialActionModule
 } from "devextreme-angular";
 import {DxTextBoxTypes} from "devextreme-angular/ui/text-box";
@@ -13,6 +13,7 @@ import {Nota} from "../../shared/models/nota";
 import {NotaService} from "../../shared/services/notas/nota.service";
 import {Produto} from "../../shared/models/produto";
 import {ProdutoService} from "../../shared/services/produtos/produto.service";
+import dxSelectBox from "devextreme/ui/select_box";
 
 type EditorOptions = DxTextBoxTypes.Properties;
 
@@ -80,7 +81,8 @@ export class ItensNotaComponent {
         })
       } else if (change.type == 'update') {
         this.serviceItensNota.updateItemNota(change.data.id, change.data).subscribe(() => {
-          console.log("ItensNota atualizado com sucesso!")
+          console.log("ItensNota atualizado com sucesso!");
+          this.carregarItensNota();
         });
       }
     }
@@ -109,6 +111,7 @@ export class ItensNotaComponent {
     valueChangeEvent: 'keyup'
   };
 
+  protected readonly dxSelectBox = dxSelectBox;
 }
 
 @NgModule({
@@ -123,6 +126,7 @@ export class ItensNotaComponent {
     DxSpeedDialActionModule,
     DxPopupModule,
     DxButtonModule,
+    DxSelectBoxModule,
   ]
 })
 export class ItensNotaModule { }

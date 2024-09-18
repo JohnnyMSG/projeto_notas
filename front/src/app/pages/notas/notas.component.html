@@ -32,7 +32,7 @@
             <dxi-validation-rule type="pattern" [pattern]="apenasDigitosPattern"
                                  message="Apenas dígitos são permitidos"></dxi-validation-rule>
           </dxi-item>
-          <dxi-item dataField="fornecedor.nome" [editorOptions]="editorOptions">
+          <dxi-item dataField="nomeFornecedor" [editorOptions]="editorOptions">
             <dxi-validation-rule type="required" message="Fornecedor é obrigatório"></dxi-validation-rule>
           </dxi-item>
           <dxi-item dataField="itens"></dxi-item>
@@ -44,8 +44,10 @@
     <!-- COLUNAS DA LISTA -->
     <dxi-column dataField="id"></dxi-column>
     <dxi-column dataField="numero"></dxi-column>
-    <dxi-column dataField="fornecedor.nome" caption="Nome do Fornecedor"></dxi-column>
-    <dxi-column dataField="data" dataformatas="dd/mm/YYYY"></dxi-column>
+    <dxi-column dataField="nomeFornecedor">
+      <dxo-lookup [dataSource]="fornecedores" displayExpr="nome" valueExpr="nome"></dxo-lookup>
+    </dxi-column>
+    <dxi-column dataField="data" dataType="date"></dxi-column>
     <dxi-column dataField="itens" [visible]="false" editCellTemplate="editCellTemplateItens"></dxi-column>
 
     <div *dxTemplate="let data of 'editCellTemplateItens'">

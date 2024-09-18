@@ -13,6 +13,8 @@ import {ItensNotaService} from "../../shared/services/itensNota/itens-nota.servi
 import {ItensNota} from "../../shared/models/itensNota";
 import DevExpress from "devextreme";
 import data = DevExpress.data;
+import {FornecedorService} from "../../shared/services/fornecedores/fornecedor.service";
+import {Fornecedor} from "../../shared/models/fornecedor";
 
 type EditorOptions = DxTextBoxTypes.Properties;
 
@@ -26,7 +28,7 @@ export class NotasComponent {
   @ViewChild("dataGrip", {static: false}) dataGrid!: DxDataGridComponent;
 
   notas: Nota[] = [];
-  notaCriada: Nota = new Nota();
+  fornecedores: Fornecedor[] = [];
   itensNota: ItensNota[] = [];
   value: Nota = new Nota();
   popupDeleteVisivel: boolean = false;
@@ -34,10 +36,12 @@ export class NotasComponent {
 
   constructor(
     private serviceNotas: NotaService,
-    private serviceItensNota: ItensNotaService
+    private serviceItensNota: ItensNotaService,
+    private serviceFornecedores: FornecedorService
   ) {}
 
   ngOnInit() {
+    this.carregarFornecedores();
     this.carregarNotas();
     this.carregarItensNota();
   }
@@ -45,6 +49,12 @@ export class NotasComponent {
   carregarNotas() {
     this.serviceNotas.getNotas().subscribe(dadosNotas => {
       this.notas = dadosNotas;
+    })
+  }
+
+  carregarFornecedores() {
+    this.serviceFornecedores.getFornecedores().subscribe(dadosFornecedores => {
+      this.fornecedores = dadosFornecedores;
     })
   }
 
@@ -56,7 +66,8 @@ export class NotasComponent {
 
   deletarNota(nota: Nota) {
     this.serviceNotas.deleteNota(nota.id).subscribe(() => {
-      console.log("Nota deletada com sucesso!")
+      console.log("Nota deletada com sucesso!");
+      this.carregarNotas();
     })
   }
 
@@ -70,27 +81,24 @@ export class NotasComponent {
 
   onSavedNota(e: any) {
     for (let change of e.changes) {
+
       if (change.type == 'insert') {
         this.serviceNotas.postNota(change.data).subscribe(() => {
           console.log("Nota criado com sucesso!");
           this.carregarNotas();
-        })
+        });
       } else if (change.type == 'update') {
         this.serviceNotas.updateNota(change.data.id, change.data).subscribe(() => {
           console.log("Nota atualizado com sucesso!")
         });
+
       }
     }
   }
 
   onSavedItemNota(e: any) {
     for (let change of e.changes) {
-      if (change.type == 'insert') {
-        this.serviceItensNota.postItemNota(change.data).subscribe(() => {
-          console.log("Item da nota criado com sucesso!");
-          this.carregarNotas();
-        })
-      } else if (change.type == 'update') {
+      if (change.type == 'update') {
         this.serviceItensNota.updateItemNota(change.data.id, change.data).subscribe(() => {
           console.log("Item da nota atualizado com sucesso!")
           this.carregarNotas();

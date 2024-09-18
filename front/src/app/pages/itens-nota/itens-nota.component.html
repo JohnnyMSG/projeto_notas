@@ -11,6 +11,17 @@
     (onRowRemoving)="popupConfirmacaoDelete($event)"
   >
 
+    <dxi-column dataField="id"></dxi-column>
+    <dxi-column dataField="quantidade"></dxi-column>
+    <dxi-column dataField="numeroNota">
+      <dxo-lookup [dataSource]="notas" displayExpr="numero" valueExpr="numero"></dxo-lookup>
+    </dxi-column>
+    <dxi-column dataField="nomeProduto">
+      <dxo-lookup [dataSource]="produtos" displayExpr="nome" valueExpr="nome"></dxo-lookup>
+    </dxi-column>
+    <dxi-column dataField="valor_total"></dxi-column>
+
+
     <!-- CONFIGURAÇÕES DA LISTA (ADIÇÃO, EDIÇÃO E REMOÇÃO) -->
     <dxo-editing
       mode="popup"
@@ -24,20 +35,16 @@
 
       <dxo-popup title="Informações Itens Nota" [showTitle]="true" width="60%" height="75%"></dxo-popup>
       <dxo-form [colCount]="1">
-
         <!-- ID -->
         <dxi-item dataField="id" [disabled]="true" [editorOptions]="{ readOnly: true }"></dxi-item>
-
         <!-- QUANTIDADE -->
         <dxi-item dataField="quantidade" [editorOptions]="editorOptions">
           <dxi-validation-rule type="required" message="Quantidade é obrigatório"></dxi-validation-rule>
         </dxi-item>
-
         <!-- NOTA -->
         <dxi-item dataField="numeroNota">
           <dxi-validation-rule type="required" message="Nota é obrigatória"></dxi-validation-rule>
         </dxi-item>
-
         <!-- PRODUTO -->
         <dxi-item dataField="nomeProduto">
           <dxi-validation-rule type="required" message="Produto é obrigatório"></dxi-validation-rule>
