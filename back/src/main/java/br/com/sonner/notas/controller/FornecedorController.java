@@ -19,8 +19,8 @@ import br.com.sonner.notas.controller.dto.FornecedorDto;
 import br.com.sonner.notas.controller.form.FornecedorForm;
 import br.com.sonner.notas.modelo.Fornecedor;
 import br.com.sonner.notas.repository.FornecedorRepository;
-import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/fornecedores")

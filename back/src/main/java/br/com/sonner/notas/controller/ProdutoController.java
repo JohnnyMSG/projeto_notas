@@ -19,8 +19,8 @@ import br.com.sonner.notas.controller.dto.ProdutoDto;
 import br.com.sonner.notas.controller.form.ProdutoForm;
 import br.com.sonner.notas.modelo.Produto;
 import br.com.sonner.notas.repository.ProdutoRepository;
-import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/produtos")

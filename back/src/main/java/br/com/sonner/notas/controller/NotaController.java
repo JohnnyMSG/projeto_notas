@@ -21,8 +21,8 @@ import br.com.sonner.notas.modelo.Nota;
 import br.com.sonner.notas.repository.FornecedorRepository;
 import br.com.sonner.notas.repository.ItemNotaRepository;
 import br.com.sonner.notas.repository.NotaRepository;
-import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/notas")

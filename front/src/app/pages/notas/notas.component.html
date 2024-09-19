@@ -100,10 +100,13 @@
 <dx-popup
   [visible]="popupDeleteVisivel"
   [width]="500"
-  [height]="170"
+  [height]="230"
   [showTitle]="false"
 >
   <p style="font-size: 18px">Você tem certeza que deseja excluir este item?</p>
+  <p style="font-size: 18px; border: 2px solid red; background-color: #fb8589; color: #a50e1e; padding: 10px; border-radius: 5px;">
+    Você excluirá os itens dessa nota também!
+  </p>
   <br>
 
   <!-- BOTÕES DE CONFIRMAÇÃO E CANCELAMENTO -->

@@ -57,7 +57,7 @@ export class FornecedoresComponent {
   deletarFornecedor(fornecedor: Fornecedor) {
     console.log(fornecedor)
     for (let nota of this.notas) {
-      if (fornecedor.nome == nota.fornecedor.nome) {
+      if (fornecedor.nome == nota.nomeFornecedor) {
         this.notaComFornecedorExistente = true
         return;
       }
